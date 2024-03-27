@@ -3,10 +3,11 @@ Simple boxing game made in Java as a university project, based on Boxing Stars f
 ```
   A,S - attack,block    arrows - move.
 ```
-To run game compile main class.
+To run game compile Main class.
 
 If there is an error in your compiler like
 ```
 input == null
 ```
 check if "graphics" folder is in boxgame package, if not copy it there from main project folder.
+
