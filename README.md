@@ -7,6 +7,6 @@ To run game compile main class.
 
 If there is an error in your compiler like
 ```
-"input == null"
+input == null
 ```
 check if "graphics" folder is in boxgame package, if not copy it there from main project folder.
