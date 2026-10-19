@@ -1,469 +1,219 @@
 package boxgame;
+
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import javax.sound.sampled.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.net.URL;
 
-
-class Game extends JFrame implements ActionListener {
+class Game extends JFrame {
     public static final int DEFAULT_WIDTH = 1200;
     public static final int DEFAULT_HEIGHT = 700;
-    public Image backgroundImage;
-    public JPanel backgroundPanel;
-    public Clip soundtrack;
-    public JButton start;
-    public JButton end;
-    public JButton chooseReady;
-    public JLabel chooseFighter;
-    public JLabel choosePlayer;
-    public JLabel chooseEnemy;
-    public JButton nextPlayer;
-    public JButton nextEnemy;
-    public JButton backPlayer;
-    public JButton backEnemy;
-    public Image enemyChoose;
-    public Image playerChoose;
-    public int fighterG=1;
-    public int fighterP=2;
-    public Player player;
-    public Enemy enemy;
-    public JLabel hpPLayer;
-    public JLabel hpEnemy;
-    public JLabel gameOver;
+    private static final int FIGHTER_COUNT = 3;
+    private Image backgroundImage;
+    private final JPanel backgroundPanel;
+    private Clip soundtrack;
+    private final JButton start, end, chooseReady;
+    private final JButton nextPlayer, nextEnemy, backPlayer, backEnemy;
+    private final JLabel chooseFighter, choosePlayer, chooseEnemy;
+    private final JLabel hpPlayer, hpEnemy, gameOver;
+    private int fighterG = 1;
+    private int fighterP = 2;
+    private Player player;
+    private Enemy enemy;
+
     public Game() {
         setTitle("BoxingGame");
         setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-
-
-        // Buttons
-        start = new JButton("Start game");
-        start.setBounds(450, 100, 300, 100);
-        start.addActionListener(this);
-        add(start);
-
-        end = new JButton("End game");
-        end.setBounds(450, 250, 300, 100);
-        end.addActionListener(this);
-        add(end);
-
-        chooseReady = new JButton("Ready");
-        chooseReady.setBounds(475, 550, 250, 75);
-        chooseReady.addActionListener(this);
-        chooseReady.setVisible(false);
-        add(chooseReady);
-
-        backPlayer = new JButton("Back");
-        backPlayer.setBounds(25, 350, 75, 50);
-        backPlayer.addActionListener(this);
-        backPlayer.setVisible(false);
-        add(backPlayer);
-
-        nextPlayer = new JButton("Next");
-        nextPlayer.setBounds(350, 350, 75, 50);
-        nextPlayer.addActionListener(this);
-        nextPlayer.setVisible(false);
-        add(nextPlayer);
-
-        backEnemy = new JButton("Back");
-        backEnemy.setBounds(775, 350, 75, 50);
-        backEnemy.addActionListener(this);
-        backEnemy.setVisible(false);
-        add(backEnemy);
-
-        nextEnemy = new JButton("Next");
-        nextEnemy.setBounds(1075, 350, 75, 50);
-        nextEnemy.addActionListener(this);
-        nextEnemy.setVisible(false);
-        add(nextEnemy);
-
-        // Images
-        try {
-            backgroundImage = ImageIO.read(getClass().getResource("graphics/imagemenu.jpg"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            playerChoose = ImageIO.read(getClass().getResource("graphics/fighter1stanceG.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            enemyChoose = ImageIO.read(getClass().getResource("graphics/fighter2stanceP.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //JLabels
-        chooseFighter = new JLabel("Choose fighter");
-        chooseFighter.setBounds(350, 0, 1000,200);
-        chooseFighter.setVisible(false);
-        chooseFighter.setFont(new Font("Goudy Stout", Font.PLAIN, 30));
-        chooseFighter.setForeground(Color.ORANGE);
-        add(chooseFighter);
-
-        choosePlayer = new JLabel();
-        choosePlayer.setIcon(new ImageIcon(playerChoose));
-        choosePlayer.setBounds(150, 230, playerChoose.getWidth(null), playerChoose.getHeight(null));
-        choosePlayer.setVisible(false);
-        add(choosePlayer);
-
-        chooseEnemy = new JLabel();
-        chooseEnemy.setIcon(new ImageIcon(enemyChoose));
-        chooseEnemy.setBounds(875, 230, enemyChoose.getWidth(null), enemyChoose.getHeight(null));
-        chooseEnemy.setVisible(false);
-        add(chooseEnemy);
-
-        hpPLayer = new JLabel("Your HP: 100");
-        hpPLayer.setBounds(10, 550, 300, 100);
-        hpPLayer.setFont(new Font("Georgia Pro Cond Black", Font.PLAIN, 15));
-        hpPLayer.setForeground(Color.orange);
-        hpPLayer.setVisible(false);
-
-        hpEnemy = new JLabel("Enemy HP: 100");
-        hpEnemy.setBounds(1070, 550, 300, 100);
-        hpEnemy.setFont(new Font("Georgia Pro Cond Black", Font.PLAIN, 15));
-        hpEnemy.setForeground(Color.orange);
-        hpEnemy.setVisible(false);
-
-        gameOver = new JLabel("Game over");
-        gameOver.setBounds(255, -50, 1000,200);
-        gameOver.setVisible(false);
-        gameOver.setFont(new Font("Goudy Stout", Font.PLAIN, 30));
-        gameOver.setForeground(Color.orange);
-        add(gameOver);
-
-
-
-        backgroundPanel = new JPanel() {
+        setLayout(null);
+        start = createButton("Start game", 450, 100, 300, 100, true, this::buttonStart);
+        end = createButton("End game", 450, 250, 300, 100, true, this::buttonEnd);
+        chooseReady = createButton("Ready", 475, 550, 250, 75, false, this::buttonChooseReady);
+        backPlayer = createButton("Back", 25, 350, 75, 50, false, () -> changeFighter(true, -1));
+        nextPlayer = createButton("Next", 350, 350, 75, 50, false, () -> changeFighter(true, 1));
+        backEnemy = createButton("Back", 775, 350, 75, 50, false, () -> changeFighter(false, -1));
+        nextEnemy = createButton("Next", 1075, 350, 75, 50, false, () -> changeFighter(false, 1));
+        backgroundImage = loadImage("graphics/imagemenu.jpg");
+        chooseFighter = createLabel("Choose fighter", 350, 0, 1000, 200, 30, "Goudy Stout");
+        choosePlayer = createFighterLabel(fighterG, "G", 150, 230);
+        chooseEnemy = createFighterLabel(fighterP, "P", 875, 230);
+        hpPlayer = createLabel("Your HP: 100", 10, 550, 300, 100, 15, "Georgia Pro Cond Black");
+        hpEnemy = createLabel("Enemy HP: 100", 1070, 550, 300, 100, 15, "Georgia Pro Cond Black");
+        gameOver = createLabel("Game over", 255, -50, 1000, 200, 30, "Goudy Stout");
+        backgroundPanel = new JPanel(null) {
             @Override
-            public void paintComponent(Graphics g) {
+            protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.drawImage(backgroundImage, 0, -20, null);
+                g.drawImage(backgroundImage, 0, -20, this);
             }
         };
-        backgroundPanel.setLayout(null);
         add(backgroundPanel);
+        backgroundPanel.setBounds(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        startSoundtrack();
+    }
 
-        //Soundtrack
+    private JButton createButton(String text, int x, int y, int width, int height, boolean visible, Runnable action) {
+        JButton button = new JButton(text);
+        button.setBounds(x, y, width, height);
+        button.setVisible(visible);
+        button.addActionListener(e -> action.run());
+        add(button);
+        return button;
+    }
 
+    private JLabel createLabel(String text, int x, int y, int width, int height, int fontSize, String fontName) {
+        JLabel label = new JLabel(text);
+        label.setBounds(x, y, width, height);
+        label.setFont(new Font(fontName, Font.PLAIN, fontSize));
+        label.setForeground(Color.ORANGE);
+        label.setVisible(false);
+        add(label);
+        return label;
+    }
+
+    private JLabel createFighterLabel(int fighterNumber, String side, int x, int y) {
+        Image image = loadImage(fighterPath(fighterNumber, side));
+        JLabel label = new JLabel(new ImageIcon(image));
+        label.setBounds(x, y, image.getWidth(null), image.getHeight(null));
+        label.setVisible(false);
+        add(label);
+        return label;
+    }
+
+    private String fighterPath(int number, String side) {
+        return "graphics/fighter" + number + "stance" + side + ".png";
+    }
+
+    private Image loadImage(String path) {
+        URL url = getClass().getResource(path);
+        if (url == null) {
+            throw new IllegalArgumentException("Image not found: " + path);
+        }
         try {
-            URL soundtrackUrl = getClass().getResource("graphics/soundtrack.wav");
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundtrackUrl);
-            soundtrack = AudioSystem.getClip();
-            soundtrack.open(audioInputStream);
-            soundtrack.loop(Clip.LOOP_CONTINUOUSLY);
+            return ImageIO.read(url);
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot load image: " + path, e);
+        }
+    }
+
+    private void changeBackground(String path) {
+        backgroundImage = loadImage(path);
+        backgroundPanel.repaint();
+    }
+
+    private void startSoundtrack() {
+        try {
+            URL url = getClass().getResource("graphics/soundtrack.wav");
+            if (url == null) throw new IllegalArgumentException("Soundtrack not found");
+            try (AudioInputStream stream = AudioSystem.getAudioInputStream(url)) {
+                soundtrack = AudioSystem.getClip();
+                soundtrack.open(stream);
+                soundtrack.loop(Clip.LOOP_CONTINUOUSLY);
+            }
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             e.printStackTrace();
         }
-
     }
 
-
-    public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
-        if(source== end){
-            buttonEnd();
-        }
-        if(source== start){
-            buttonStart();
-        }
-        if(source== chooseReady){
-            buttonChooseReady();
-        }
-        if(source== nextPlayer){
-            buttonChooseNextPlayer();
-        }
-        if(source== backPlayer){
-            buttonChooseBackPlayer();
-        }
-        if(source== nextEnemy){
-            buttonChooseNextEnemy();
-        }
-        if(source== backEnemy){
-            buttonChooseBackEnemy();
-        }
-
+    private void setSelectionVisible(boolean visible) {
+        chooseFighter.setVisible(visible);
+        chooseReady.setVisible(visible);
+        nextPlayer.setVisible(visible);
+        nextEnemy.setVisible(visible);
+        backPlayer.setVisible(visible);
+        backEnemy.setVisible(visible);
+        choosePlayer.setVisible(visible);
+        chooseEnemy.setVisible(visible);
     }
 
-    public void buttonEnd(){
+    private void buttonEnd() {
+        if (soundtrack != null) soundtrack.close();
         dispose();
     }
 
-    public void buttonStart(){
-        try {
-            backgroundImage = ImageIO.read(getClass().getResource("graphics/chooseFighter.jpg"));
-            backgroundPanel.repaint();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void buttonStart() {
+        changeBackground("graphics/chooseFighter.jpg");
         gameOver.setVisible(false);
         start.setVisible(false);
         end.setVisible(false);
-        chooseFighter.setVisible(true);
-        chooseReady.setVisible(true);
-        nextPlayer.setVisible(true);
-        nextEnemy.setVisible(true);
-        backPlayer.setVisible(true);
-        backEnemy.setVisible(true);
-        choosePlayer.setVisible(true);
-        chooseEnemy.setVisible(true);
+        setSelectionVisible(true);
     }
-    public void buttonChooseReady(){
-        try {
-            backgroundImage = ImageIO.read(getClass().getResource("graphics/arena.jpg"));
-            backgroundPanel.repaint();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
-        chooseFighter.setVisible(false);
-        chooseReady.setVisible(false);
-        nextPlayer.setVisible(false);
-        nextEnemy.setVisible(false);
-        backPlayer.setVisible(false);
-        backEnemy.setVisible(false);
-        chooseEnemy.setVisible(false);
-        choosePlayer.setVisible(false);
+    private void changeFighter(boolean isPlayer, int direction) {
+        int current = isPlayer ? fighterG : fighterP;
+        int next = (current - 1 + direction + FIGHTER_COUNT) % FIGHTER_COUNT + 1;
+        String side = isPlayer ? "G" : "P";
+        JLabel label = isPlayer ? choosePlayer : chooseEnemy;
+        label.setIcon(new ImageIcon(loadImage(fighterPath(next, side))));
+        if (isPlayer) fighterG = next;
+        else fighterP = next;
+    }
 
+    private void buttonChooseReady() {
+        changeBackground("graphics/arena.jpg");
+        setSelectionVisible(false);
         backgroundPanel.add(hpEnemy);
-        backgroundPanel.add(hpPLayer);
+        backgroundPanel.add(hpPlayer);
         hpEnemy.setVisible(true);
-        hpPLayer.setVisible(true);
-
-        if(fighterG==1){
-            player = new Player(5,100,1,"graphics/fighter1stanceG.png");
-        }
-        else if(fighterG==2){
-            player = new Player(5,100,2,"graphics/fighter2stanceG.png");
-        }
-        else if(fighterG==3){
-            player = new Player(5,100,3,"graphics/fighter3stanceG.png");
-        }
+        hpPlayer.setVisible(true);
+        player = new Player(5, 100, fighterG, fighterPath(fighterG, "G"));
+        enemy = new Enemy(5, 100, fighterP, fighterPath(fighterP, "P"));
+        addFighterToArena(player);
+        addFighterToArena(enemy);
         addKeyListener(player);
-        backgroundPanel.add(player);
-        player.setBounds(0,0, 1200, 700);
-        player.setOpaque(false);
-        player.setVisible(true);
-
-
-        if(fighterP==1){
-            enemy = new Enemy(5,100,1,"graphics/fighter1stanceP.png");
-        }
-        else if(fighterP==2){
-            enemy = new Enemy(5,100,2,"graphics/fighter2stanceP.png");
-        }
-        else if(fighterP==3){
-            enemy = new Enemy(5,100,3,"graphics/fighter3stanceP.png");
-        }
-        backgroundPanel.add(enemy);
-        enemy.setBounds(0,0, 1200, 700);
-        enemy.setOpaque(false);
-        enemy.setVisible(true);
-
-
-
-        Timer timer1 = new Timer(200, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                enemy.moveEnemy();
-                fight(player, enemy, hpPLayer, hpEnemy);
-            }
+        setFocusable(true);
+        requestFocusInWindow();
+        Timer movementTimer = new Timer(200, e -> {
+            enemy.moveEnemy();
+            fight();
         });
-        timer1.start();
-
-        Timer timer2 = new Timer(500, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-                enemy.actionsEnemy();
-            }
-        });
-        timer2.start();
-
-        Timer timer3 = new Timer(500, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                gameEnd(timer1, timer2);            }
-        });
-        timer3.start();
-
+        Timer actionTimer = new Timer(500, e -> enemy.actionsEnemy());
+        Timer endTimer = new Timer(500, null);
+        endTimer.addActionListener(e -> gameEnd(movementTimer, actionTimer, endTimer));
+        movementTimer.start();
+        actionTimer.start();
+        endTimer.start();
     }
 
-    public void buttonChooseNextPlayer(){
-        if(fighterG==1){
-            Icon newFighter = new ImageIcon("graphics/fighter2stanceG.png");
-            choosePlayer.setIcon( newFighter);
-            choosePlayer.repaint();
-            fighterG=2;
-
-        }
-
-        else if(fighterG==2){
-            Icon newFighter = new ImageIcon("graphics/fighter3stanceG.png");
-            choosePlayer.setIcon(newFighter);
-            choosePlayer.repaint();
-            fighterG=3;
-        }
-
-        else if(fighterG==3){
-            Icon newFighter = new ImageIcon("graphics/fighter1stanceG.png");
-            choosePlayer.setIcon(newFighter);
-            choosePlayer.repaint();
-            fighterG=1;
-        }
-
+    private void addFighterToArena(JPanel fighter) {
+        backgroundPanel.add(fighter);
+        fighter.setBounds(0, 0, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        fighter.setOpaque(false);
+        fighter.setVisible(true);
     }
 
-    public void buttonChooseBackPlayer(){
-
-        if(fighterG==1){
-            Icon newFighter = new ImageIcon("graphics/fighter3stanceG.png");
-            choosePlayer.setIcon( newFighter);
-            choosePlayer.repaint();
-            fighterG=3;
-
+    private void fight() {
+        if (enemy.x_position - player.x_position > 110) return;
+        if (player.mode == 2) {
+            enemy.hp -= enemy.mode == 1 ? 2 : player.damage;
         }
-
-        else if(fighterG==2){
-            Icon newFighter = new ImageIcon("graphics/fighter1stanceG.png");
-            choosePlayer.setIcon(newFighter);
-            choosePlayer.repaint();
-            fighterG=1;
-
+        if (enemy.mode == 2) {
+            player.hp -= player.mode == 1 ? 2 : enemy.damage;
         }
-
-        else if(fighterG==3){
-            Icon newFighter = new ImageIcon("graphics/fighter2stanceG.png");
-            choosePlayer.setIcon(newFighter);
-            choosePlayer.repaint();
-            fighterG=2;
-        }
-
+        hpPlayer.setText("Your HP: " + player.hp);
+        hpEnemy.setText("Enemy HP: " + enemy.hp);
     }
 
-    public void buttonChooseNextEnemy(){
-
-        if(fighterP==1){
-            Icon newFighter = new ImageIcon("graphics/fighter2stanceP.png");
-            chooseEnemy.setIcon( newFighter);
-            chooseEnemy.repaint();
-            fighterP=2;
-
-        }
-
-        else if(fighterP==2){
-            Icon newFighter = new ImageIcon("graphics/fighter3stanceP.png");
-            chooseEnemy.setIcon(newFighter);
-            chooseEnemy.repaint();
-            fighterP=3;
-
-        }
-
-        else if(fighterP==3){
-            Icon newFighter = new ImageIcon("graphics/fighter1stanceP.png");
-            chooseEnemy.setIcon(newFighter);
-            chooseEnemy.repaint();
-            fighterP=1;
-        }
-
+    private void gameEnd(Timer movementTimer, Timer actionTimer, Timer endTimer) {
+        if (player.hp > 0 && enemy.hp > 0) return;
+        movementTimer.stop();
+        actionTimer.stop();
+        endTimer.stop();
+        removeKeyListener(player);
+        backgroundPanel.remove(player);
+        backgroundPanel.remove(enemy);
+        backgroundPanel.revalidate();
+        backgroundPanel.repaint();
+        hpPlayer.setVisible(false);
+        hpEnemy.setVisible(false);
+        start.setVisible(true);
+        end.setVisible(true);
+        gameOver.setText(player.hp <= 0 ? "Game over, you lost!" : "Game over, you win!");
+        gameOver.setVisible(true);
+        player.hp = 100;
+        enemy.hp = 100;
+        hpPlayer.setText("Your HP: 100");
+        hpEnemy.setText("Enemy HP: 100");
     }
-
-    public void buttonChooseBackEnemy(){
-
-        if(fighterP==1){
-            Icon newFighter = new ImageIcon("graphics/fighter3stanceP.png");
-            chooseEnemy.setIcon( newFighter);
-            chooseEnemy.repaint();
-            fighterP=3;
-
-        }
-
-        else if(fighterP==2){
-            Icon newFighter = new ImageIcon("graphics/fighter1stanceP.png");
-            chooseEnemy.setIcon(newFighter);
-            chooseEnemy.repaint();
-            fighterP=1;
-
-        }
-
-        else if(fighterG==3){
-            Icon newFighter = new ImageIcon("graphics/fighter2stanceP.png");
-            chooseEnemy.setIcon(newFighter);
-            chooseEnemy.repaint();
-            fighterP=2;
-        }
-
-    }
-
-    public void fight(Player player, Enemy enemy, JLabel hpPlayer, JLabel hpEnemy){
-        if((enemy.x_position - player.x_position)<=110){
-            if(player.mode ==0&& enemy.mode ==0){
-                //nothing
-            }
-            else if(player.mode ==0&& enemy.mode ==1){
-                //nothing
-            }
-            else if(player.mode ==0&& enemy.mode ==2){
-                player.hp -= enemy.damage;
-                hpPlayer.setText("Your HP: "+ player.hp);
-            }
-            else if(player.mode ==1&& enemy.mode ==0){
-                //nothing
-            }
-            else if(player.mode ==1&& enemy.mode ==1){
-                //nothing
-            }
-            else if(player.mode ==1&& enemy.mode ==2){
-                player.hp -= 2;
-                hpPlayer.setText("Your HP: "+ player.hp);
-
-            }
-            else if(player.mode ==2&& enemy.mode ==0){
-                enemy.hp -= player.damage;
-                hpEnemy.setText("Enemy HP: " + enemy.hp);
-            }
-            else if(player.mode ==2&& enemy.mode ==1){
-                enemy.hp -= 2;
-                hpEnemy.setText("Enemy HP: " + enemy.hp);
-            }
-            else if(player.mode ==2&& enemy.mode ==2){
-                enemy.hp -= player.damage;
-                player.hp -= enemy.damage;
-                hpEnemy.setText("Enemy HP: " + enemy.hp);
-                hpPlayer.setText("Your HP: "+ player.hp);
-            }
-         }
-        else{}
-    }
-
-    public void gameEnd(Timer timer1, Timer timer2){
-        if(player.hp<=0|| enemy.hp<=0){
-            timer1.stop();
-            timer2.stop();
-            removeKeyListener(player);
-            player.setVisible(false);
-            enemy.setVisible(false);
-            backgroundPanel.remove(player);
-            backgroundPanel.remove(enemy);
-
-            hpPLayer.setVisible(false);
-            hpEnemy.setVisible(false);
-            start.setVisible(true);
-            end.setVisible(true);
-            gameOver.setVisible(true);
-            if(player.hp<=0){
-                gameOver.setText("Game over, you lost!");
-            }
-            else if(enemy.hp<=0){
-                gameOver.setText("Game over, you win!");
-            }
-            player.hp = 100;
-            enemy.hp = 100;
-            hpPLayer.setText("Your HP: " + player.hp);
-            hpPLayer.setText("Enemy HP: " + enemy.hp);
-        }
-    }
-};
+}

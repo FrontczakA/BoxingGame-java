@@ -5,9 +5,4 @@ Simple boxing game made in Java as a university project, based on Boxing Stars f
 ```
 To run game compile Main class.
 
-If there is an error in your compiler like
-```
-input == null
-```
-check if "graphics" folder is in boxgame package, if not copy it there from main project folder.
-
+This project was created as part of a university course for educational purposes.

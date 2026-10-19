@@ -1,4 +1,6 @@
+
 package boxgame;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -8,28 +10,24 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class Player extends JPanel implements KeyListener {
+
     public int hp;
     public int damage;
     public Image playerImage;
     public int x_position;
     public int whichFighter;
-    public int mode; //mode =0 (nothing) =1 (block)  =2(atack)
+    //0 = nothing, 1 = block, 2 = attack
+    public int mode;
     public int whichAttack;
 
-    public Player(int damage_in, int hp_in, int whichFighter_in, String imagePath) {
+    public Player(int damage, int hp, int whichFighter, String imagePath) {
+        this.damage = damage;
+        this.hp = hp;
+        this.whichFighter = whichFighter;
         mode = 0;
-        whichFighter = whichFighter_in;
         whichAttack = 1;
-        damage = damage_in;
-        hp = hp_in;
-
-        try {
-            playerImage = ImageIO.read(getClass().getResource(imagePath));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         x_position = 150;
+        loadImage(imagePath);
         addKeyListener(this);
         setFocusable(true);
     }
@@ -46,190 +44,63 @@ public class Player extends JPanel implements KeyListener {
         drawPlayer(g);
     }
 
+    @Override
     public void keyPressed(KeyEvent e) {
-        int keyCode = e.getKeyCode();
-        if (keyCode == KeyEvent.VK_LEFT) {
-            if(x_position >150){
-            x_position -= 40;
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_LEFT -> movePlayer(-40);
+            case KeyEvent.VK_RIGHT -> movePlayer(40);
+            case KeyEvent.VK_A -> block();
+            case KeyEvent.VK_S -> attack();
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_A ||
+                e.getKeyCode() == KeyEvent.VK_S) {idle();
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    private void movePlayer(int distance) {
+        int newPosition = x_position + distance;
+        if (newPosition >= 150 && newPosition <= 950) {
+            x_position = newPosition;
             repaint();
-            }
-        } else if (keyCode == KeyEvent.VK_RIGHT) {
-            if(x_position <950){
-                x_position += 40;
-                repaint();
-            }
-        }
-        else if (keyCode == KeyEvent.VK_A){
-            if(this.whichFighter ==1) {
-
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1blockG.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-                this.mode = 1;
-            }
-            else if(this.whichFighter ==2){
-                try {
-                this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2blockG.png")));
-            } catch (IOException g) {
-                g.printStackTrace();
-            }
-                repaint();
-                this.mode = 1;
-
-            }
-            else if(this.whichFighter ==3){
-                try {
-                this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3blockG.png")));
-            } catch (IOException g) {
-                g.printStackTrace();
-            }
-                repaint();
-                this.mode = 1;
-
-            }
-        }
-
-        else if (keyCode == KeyEvent.VK_S) {
-            if (this.whichFighter == 1){
-
-                if (this.whichAttack == 1) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1attack1G.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 2;
-                    this.mode = 2;
-
-                } else if (this.whichAttack == 2) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1attack2G.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 1;
-                    this.mode = 2;
-                }
-            }
-            else if (this.whichFighter == 2){
-
-                if (this.whichAttack == 1) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2attack1G.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 2;
-                    this.mode = 2;
-                } else if (this.whichAttack == 2) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2attack2G.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 1;
-                    this.mode = 2;
-                }
-            }
-            else if (this.whichFighter == 3){
-
-                if (this.whichAttack == 1) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3attack1G.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 2;
-                    this.mode = 2;
-                } else if (this.whichAttack == 2) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3attack2G.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 1;
-                    this.mode = 2;
-                }
-            }
         }
     }
 
-    public void keyReleased(KeyEvent e){
-        int keyCode = e.getKeyCode();
-        if (keyCode == KeyEvent.VK_A) {
-            if(this.whichFighter ==1) {
-
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1stanceG.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-                this.mode = 0;
-            }
-            else if(this.whichFighter ==2) {
-
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2stanceG.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-                this.mode = 0;
-            }
-            else if(this.whichFighter ==3) {
-
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3stanceG.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-                this.mode = 0;
-            }
-        }
-
-        else if (keyCode == KeyEvent.VK_S) {
-            if(this.whichFighter ==1) {
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1stanceG.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-                this.mode = 0;
-            }
-            else if(this.whichFighter ==2) {
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2stanceG.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-                this.mode = 0;
-            }
-            else if(this.whichFighter ==3) {
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3stanceG.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-                this.mode = 0;
-            }
-        }
+    private void block() {
+        mode = 1;
+        updateImage("block");
     }
 
+    private void attack() {
+        mode = 2;
+        updateImage("attack" + whichAttack);
+        //alternate between attack 1 and attack 2
+        whichAttack = (whichAttack == 1) ? 2 : 1;
+    }
 
-    public void keyTyped(KeyEvent e){}
+    private void idle() {
+        mode = 0;
+        updateImage("stance");
+    }
 
+    private void updateImage(String action) {
+        String imagePath = "graphics/fighter" + whichFighter + action + "G.png";
+        loadImage(imagePath);
+    }
+
+    private void loadImage(String imagePath) {
+        try {
+            playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource(imagePath)));
+            repaint();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

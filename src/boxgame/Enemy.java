@@ -1,3 +1,4 @@
+
 package boxgame;
 
 import javax.imageio.ImageIO;
@@ -8,8 +9,10 @@ import java.util.Random;
 
 public class Enemy extends Player {
 
-    Enemy(int damage_in, int hp_in, int whichFighter_in, String imagePath){
-        super(damage_in, hp_in, whichFighter_in, imagePath);
+    private final Random random = new Random();
+
+    Enemy(int damage, int hp, int whichFighter, String imagePath) {
+        super(damage, hp, whichFighter, imagePath);
         removeKeyListener(this);
         x_position = 900;
     }
@@ -26,157 +29,52 @@ public class Enemy extends Player {
         drawEnemy(g);
     }
 
-    public void moveEnemy(){
-        Random rand = new Random();
-        int los = rand.nextInt(2);
-        if(this.x_position <900 && this.x_position >130) {
-            if (los == 0) {
-                this.x_position += 10;
-                repaint();
-            } else if (los == 1) {
-                this.x_position -= 10;
-                repaint();
-            } else if (los == 2) {
-            //do nothing
-            }
+    public void moveEnemy() {
+        if (x_position >= 900) {
+            x_position -= 10;
+        } else if (x_position <= 130) {
+            x_position += 10;
+        } else {
+            // Random movement: left or right
+            x_position += random.nextBoolean() ? 10 : -10;
         }
-        else if(this.x_position ==900){
-            this.x_position -=10;
-            repaint();
-        }
-        else if(this.x_position ==130){
-            this.x_position +=10;
-            repaint();
+        repaint();
+    }
+
+    public void actionsEnemy() {
+        int action = random.nextInt(6);
+
+        switch (action) {
+            case 0 -> block();
+            case 1 -> attack();
+            default -> idle();
         }
     }
 
-    public void actionsEnemy(){
-        Random rand = new Random();
-        int random = rand.nextInt(6);
-        if(random==0) {
-            this.mode = 1;
-            if (this.whichFighter == 1) {
+    private void block() {
+        mode = 1;
+        updateImage("block");
+    }
 
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1blockP.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
+    private void attack() {
+        mode = 2;
+        updateImage("attack" + whichAttack);
+        // Alternate between attack 1 and attack 2
+        whichAttack = (whichAttack == 1) ? 2 : 1;
+    }
 
-            } else if (this.whichFighter == 2) {
+    private void idle() {
+        mode = 0;
+        updateImage("stance");
+    }
 
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2blockP.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-
-            } else if (this.whichFighter == 3) {
-
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3blockP.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-
-            }
-        }
-        if(random==1) {
-            this.mode = 2;
-            if (this.whichFighter == 1) {
-                if (this.whichAttack == 1) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1attack1P.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 2;
-
-
-                } else if (this.whichAttack == 2) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1attack2P.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 1;
-
-                }
-            } else if (this.whichFighter == 2) {
-                if (this.whichAttack == 1) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2attack1P.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 2;
-
-
-                } else if (this.whichAttack == 2) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2attack2P.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 1;
-
-                }
-            } else if (this.whichFighter == 3) {
-                if (this.whichAttack == 1) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3attack1P.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 2;
-
-
-                } else if (this.whichAttack == 2) {
-                    try {
-                        this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3attack2P.png")));
-                    } catch (IOException g) {
-                        g.printStackTrace();
-                    }
-                    repaint();
-                    this.whichAttack = 1;
-
-                }
-            }
-        }
-        if(random==2||random==3||random==4||random==5) {
-            this.mode = 0;
-            if(whichFighter ==1){
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter1stanceP.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-            }
-            else if(whichFighter ==2){
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter2stanceP.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-            }
-            else if(whichFighter ==3){
-                try {
-                    this.playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource("graphics/fighter3stanceP.png")));
-                } catch (IOException g) {
-                    g.printStackTrace();
-                }
-                repaint();
-            }
+    private void updateImage(String action) {
+        String imagePath = "graphics/fighter" + whichFighter + action + "P.png";
+        try {
+            playerImage = ImageIO.read(Objects.requireNonNull(getClass().getResource(imagePath)));
+            repaint();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
